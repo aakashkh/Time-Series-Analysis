@@ -74,7 +74,7 @@ amznrt.ar$asy.var
 -0.06193300 + c(-1.96, 1.96)*sqrt(0.0004175039) #  -0.10198151 -0.02188449
 # Parameter 1  contain 0
 # Parametr 2 do not contain 0 and hence be careful with using AR(2)
-# Also AR ignores volatility clustering
+
 
 # On S&P 500
 getSymbols("^GSPC")
