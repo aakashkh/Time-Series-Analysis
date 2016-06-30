@@ -49,6 +49,7 @@ x3.ar <- ar(x3, method = "mle")
 x3.ar$ar
 
 # AR(p) model to financial data
+# on Amazon
 library(quantmod)
 getSymbols('AMZN')
 AMZN
@@ -74,4 +75,22 @@ amznrt.ar$asy.var
 # Parameter 1  contain 0
 # Parametr 2 do not contain 0 and hence be careful with using AR(2)
 # Also AR ignores volatility clustering
+
+# On S&P 500
+getSymbols("^GSPC")
+GSPC
+str(GSPC)
+summary(GSPC)
+plot(Cl(GSPC))
+# first order differences of log prices
+gspcrt = diff(log(Cl(GSPC)))
+plot(gspcrt)
+# Volatility clustering visible
+acf(gspcrt, na.action=na.omit) # Not white noise
+# Long memory processes significant correlation at higher lag  
+# Try to fit AR
+gspcrt.ar <- ar(gspcrt, na.action=na.omit)
+gspcrt.ar$order
+gspcrt.ar$ar # 20 parameters
+# hence complex model and AR is not suitable
 
