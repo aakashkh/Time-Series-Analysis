@@ -49,18 +49,29 @@ x3.ar <- ar(x3, method = "mle")
 x3.ar$ar
 
 # AR(p) model to financial data
+library(quantmod)
+getSymbols('AMZN')
+AMZN
+str(AMZN)
+summary(AMZN)
+layout(1:1)
+plot(Cl(AMZN))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Logarithmic returns and first order difference for AMZN
+amznrt = diff(log(Cl(AMZN)))
+plot(amznrt)
+#Checked that differenced series is white noise or not
+acf(amznrt, na.action=na.omit) # not a white series
+# Fit AR (p) model
+amznrt.ar <- ar(amznrt, na.action=na.omit)
+amznrt.ar$order
+amznrt.ar$ar
+amznrt.ar$asy.var
+# we see that p = 2, we`ll check CI for both parameters and if they consists zero 
+# then that parameter is not useful, it reduces our confidence
+-0.02161211 + c(-1.96, 1.96)*sqrt(0.0004175039) #  -0.06166062  0.01843640
+-0.06193300 + c(-1.96, 1.96)*sqrt(0.0004175039) #  -0.10198151 -0.02188449
+# Parameter 1  contain 0
+# Parametr 2 do not contain 0 and hence be careful with using AR(2)
+# Also AR ignores volatility clustering
 
