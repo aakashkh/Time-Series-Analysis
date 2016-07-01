@@ -24,3 +24,29 @@ arima(x2, order=c(2, 0, 2))
 0.319 + c(-1.96, 1.96)*0.0792
 -0.552 + c(-1.96, 1.96)*0.0771
 # CI do not involves the values of the parameter of MA
+"In order to determine which order of the ARMA model is appropriate 
+for a series, we needto use the AIC (or BIC) across a subset of values 
+for , and then apply the Ljung-Box test todetermine if a good fit has 
+been achieved, for particular values of"
+# ARMA (3,2), best ARMA(p,q) model
+set.seed(3)
+x3 <- arima.sim(n=1000, model=list(ar=c(0.5, -0.25, 0.4), ma=c(0.5, -0.3)))
+# Check which is best fit
+final.aic <- Inf
+final.order <- c(0,0,0)
+for (i in 0:4) 
+  for (j in 0:4) {
+    current.aic <- AIC(arima(x3, order=c(i, 0, j)))
+    if (current.aic < final.aic) {
+      final.aic <- current.aic
+      final.order <- c(i, 0, j)
+      final.arma <- arima(x3, order=final.order)
+  }
+  }
+# final.aic = 2863.365
+# final.order = 3 0 2
+# Check if residuals of the model are Discrete White Noise (DWN) or not
+acf(resid(final.arma)) # actually a DWN
+# Ljung-Box test for 20 lags to confirm this
+Box.test(resid(final.arma), lag=20, type="Ljung‐Box")
+# p-value = 0.869 > 0.05 and hence model is good fit
