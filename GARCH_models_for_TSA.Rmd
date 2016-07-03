@@ -1,0 +1,81 @@
+---
+title: "GARCH_models_for_TSA"
+author: "Aakash Khandelwal"
+date: "July 3, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# collection of random variables is heteroskedastic if there are certain groups, or subsets, of 
+# variables within the larger set that have a different variance from the remaining variables.
+#  an increase in variance is correlated to a further increase in variance. = Conditional
+#  volatility itself is hard to detect purely from the correlogram.
+
+# ARCH model - the variance of an ARCH(1) process follows an AR(1) process
+# GARCH is the "ARMA equivalent" of ARCH
+# Simulate GARCH(1,1)
+set.seed(2)
+a0 <- 0.2 # intercept
+a1 <- 0.5 # AR(1) parameter
+b1 <- 0.3 # MA(1) parameter
+w <- rnorm(10000) # random white noise
+eps <- rep(0, 10000) # Time series values
+sigsq <- rep(0, 10000) # ARMA variances
+for (i in 2:10000) {
+  sigsq[i] <- a0 + a1 * (eps[i-1]^2) + b1 * sigsq[i-1]
+  eps[i] <- w[i]*sqrt(sigsq[i])
+}
+head(sigsq)
+head(eps)
+acf(eps) # Correlogram
+acf(eps^2) #Correlogram of square of series
+
+# Fit a GARCH model
+library(tseries)
+eps.garch <- garch(eps, trace=FALSE)
+eps.garch
+confint(eps.garch) # Confidence interval 
+
+# Fitting on financial data - FTSE 100
+library(quantmod)
+getSymbols("^FTSE")
+ftrt = diff(log(Cl(FTSE))) 
+plot(ftrt)
+ft <- as.numeric(ftrt)
+ft <- ft[!is.na(ft)]
+
+# Fit ARIMA, see ARIMA file for more details
+ftfinal.aic <- Inf
+ftfinal.order <- c(0,0,0)
+for (p in 1:4) 
+  for (d in 0:1) 
+    for (q in 1:4) {
+      ftcurrent.aic <- AIC(arima(ft, order=c(p, d, q)))
+      if (ftcurrent.aic < ftfinal.aic) {
+        ftfinal.aic <- ftcurrent.aic
+        ftfinal.order <- c(p, d, q)
+        ftfinal.arima <- arima(ft, order=ftfinal.order)
+      }
+    }
+ftfinal.order # ARIMA(4,0,4)
+# to test whether the residuals of this model fit possess evidence of conditional heteroskedastic behaviour
+acf(resid(ftfinal.arima)) # good fir of DWN, and hence ARIMA(4,0,4) is good fit
+acf(resid(ftfinal.arima)^2) # for conditional heteroskedastic (CH)
+# clear evidence of serial correlation
+# CH is present in differenced log return of FTSE
+
+# Fit GARCH model using tseries package
+ft.garch <- garch(ft, trace=F) # trace=F, helps to supress excessive output
+ft.res <- ft.garch$res[-1] # remove first element of residuals as it is NA
+acf(ft.res) # DWN
+acf(ft.res^2) # GARCH test, showing DWN
+
+ 
+```
+
+
